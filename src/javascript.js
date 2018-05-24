@@ -1,4 +1,4 @@
-// Create Joystic
+// Criar Joystick
 var joystic = nipplejs.create({
     zone: document.getElementById('zone'),
     mode: 'static',
@@ -9,18 +9,18 @@ var joystic = nipplejs.create({
 });
 
 
-// See the postion that joystic is in the page to calculate
-var position_c  = $('.nipple .front').offset();             // Position of center element
+// Ver qual o ponto central do Joystick na página
+var position_c  = $('.nipple .front').offset();             // Posição do centro do elemento
 var position_b  = {};
-var size        = ($('.nipple .front').height());         // Distance from center to border
+var size        = ($('.nipple .front').height());           // Distancia do centro para as bordas
 var mult        = 1/size;       
 
 jQuery.each(position_c,function(key,value){
-    position_b[key]=value-(size/2);                             // Position border element
+    position_b[key]=value-(size/2);                         // Posição da borda do elemento
 });
 
 
-// Send information when move joystic
+// Enviar informação quando joystic movimentar
 joystic.on('move',function (evt, data) {
 
     x_default = (data.position.x - position_b.left - size)*mult;

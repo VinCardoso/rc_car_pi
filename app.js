@@ -15,7 +15,7 @@ var		pigpio = require('pigpio'),
 		in3 	= new Gpio(27, 	{mode: Gpio.OUTPUT}),	// Enable 3
 		in4 	= new Gpio(22, 	{mode: Gpio.OUTPUT}),	// Enable 4
 
-		in5 	= new Gpio(23, 	{mode: Gpio.INPUT}),	// Sinal de Leitura de Velocidade do Encoder
+		encoder = new Gpio(26, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE}),	// Sinal de Leitura de Velocidade do Encoder
 
 		// Set PWM
 		pwm1	= new Gpio(13,	{mode: Gpio.OUTPUT}),	// Saída do PWM Motor 1
@@ -57,52 +57,34 @@ var		pigpio = require('pigpio'),
 		duty_left = 0;
 		duty_right = 0;
 
-
-		total = 0;
-		p = in5.digitalRead();
-		p_last = 0;
-		cont = 0;
-
 		setInterval(function () {
 
 			pwm1.pwmWrite(duty_right);
 			pwm2.pwmWrite(duty_left);
 
-			p = in5.digitalRead();
-			//io.emit('valor',in5.digitalRead());
-			total = total + 1;
-			if(total != 100){
-				if(p == p_last){
-
-				}else{
-					if(p == 1 && p_last == 0){
-						cont = cont + 1;
-					}
-					
-					p_last = p;
-
-				}
-			}else{
-				
-				io.emit('valor',cont);
-				cont = 0;
-				total = 0;
-			}
-			
-
 
 		}, 10);
 
 
+		// Contando borda de subida e enviadno para o controle
+		total = 0;
+		encoder.on('interrupt', function (level) {
+			  if (level === 1) {
+			    total++;
+				io.emit('valor',total);
+			  }
+		});
 
+
+// Ativar servidor
 app.use(express.static(__dirname));  
 server.listen(80);  
 
+
+
+// Variáveis para poder setar o mínimo e máximo do PWM
 min = 0;
 max = 255;
-
-
-
 
 
 // Conexão com o Controle
