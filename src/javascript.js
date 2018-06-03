@@ -76,7 +76,7 @@ $("button.add").click(function(){
     return false;
 });
 
-// Botão Mostrar Form Trechos
+// Botão Mostrar Form Trecho
 $("button.show-form").click(function(){
     $(".insert-data").toggle();
     });
