@@ -52,17 +52,45 @@ socket.on('valor', function(data) {
         $('span.result').html(data);
     });
 
+
+
+
+
+// Adicionar mais trechos para serem digitados
+
+// Configurações de Trecho
+n_trechos_iniciais = 3;
+
+n_trechos = 0;
+for (i = 0; i < n_trechos_iniciais; i++) {
+    n_trechos++;
+    html_trecho = "<div class='form-row row-data'><div class='col'><label for='d1'>Trecho "+n_trechos+"</label><input pattern='[0-9]*' type='number' class='form-control form-control-sm' name='d"+n_trechos+"'class='form-control' placeholder='Distância "+n_trechos+" (m)'></div><div class='col'><label for='v"+n_trechos+"'>&nbsp;</label><input pattern='[0-9]*' type='number' class='form-control form-control-sm' name='v"+n_trechos+"'class='form-control' placeholder='Velocidade "+n_trechos+" (m/s)'></div></div>";
+    $(".insert-after").before(html_trecho);
+}
+
+// Botão Adicionar Trecho
 $("button.add").click(function(){
-    $(".insert-after").after("<div class='row space-down row-data'><div class='col'><input type='number' class='form-control form-control-sm' name='d2'class='form-control' placeholder='Distância (m)'></div><div class='col'><input type='number' class='form-control form-control-sm' name='v2' class='form-control' placeholder='Velocidade (m/s)'></div></div>");
+    n_trechos++;
+    html_trecho = "<div class='form-row'><div class='col'><label for='d1'>Trecho "+n_trechos+"</label><input pattern='[0-9]*' type='number' class='form-control form-control-sm' name='d"+n_trechos+"'class='form-control' placeholder='Distância "+n_trechos+" (m)'></div><div class='col'><label for='v"+n_trechos+"'>&nbsp;</label><input pattern='[0-9]*' type='number' class='form-control form-control-sm' name='v"+n_trechos+"'class='form-control' placeholder='Velocidade "+n_trechos+" (m/s)'></div></div>";
+    $(".insert-after").before(html_trecho);
     return false;
 });
 
+// Botão Mostrar Form Trechos
 $("button.show-form").click(function(){
     $(".insert-data").toggle();
     });
 
+// 
 $("button.send-data").click(function(){
-    var num_data = $('.row-data').length;
+
+    num_data = $('.row-data').length;
+
+    var trechos = {
+        'info'
+
+    }
+    var 
     send('data',num_data);
     $(".insert-data").toggle();
     return false;

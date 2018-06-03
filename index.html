@@ -12,64 +12,75 @@
 <body>
 
 	<div class="container geral">
-		<div class="row">
-		    <div class="col">
-		      <h1>Controle Carro</h1>
-		    </div>
-	  	</div>
-	  	<div class="row">
-	  		<div class="col">
-	  			<h2>Velocidade <span class="badge badge-secondary result">0</span></h2>
+		
+		<!-- Título -->
+			<div class="row">
+			    <div class="col">
+			      <h1>Controle Carro</h1>
+			    </div>
 		  	</div>
-	  	</div>
-	  	<div class="row justify-content-md-center space-down">
-	  		<div class="col-lg-4">
-	  			<button class="btn btn-primary btn-block btn-success show-form">Adicionar Trechos</button>
-	  			
-	  		</div>
-	  	</div>
-	  	<div class="row insert-data">
-	  		<div class="col">
-	  			<form>
 
-					<div class="row space-down row-data">
-					    <div class="col">
-					      <input type="number" class="form-control form-control-sm" name="d1"class="form-control" placeholder="Distância (m)">
-					    </div>
-					    <div class="col">
-					      <input type="number" class="form-control form-control-sm" name="v1" class="form-control" placeholder="Velocidade (m/s)">
-					    </div>
-					</div>
+		<!-- Velocidade -->
+		  	<div class="row">
+		  		<div class="col">
+		  			<h2>Velocidade <span class="badge badge-secondary result">0</span> m/s</h2>
+			  	</div>
+		  	</div>
 
-					<div class="row space-down row-data">
-					    <div class="col">
-					      <input type="number" class="form-control form-control-sm" name="d2"class="form-control" placeholder="Distância (m)">
-					    </div>
-					    <div class="col">
-					      <input type="number" class="form-control form-control-sm" name="v2" class="form-control" placeholder="Velocidade (m/s)">
-					    </div>
-					</div>
+		<!-- Adicionar Trechos Botão -->
+		  	<div class="row justify-content-md-center space-down">
+		  		<div class="col-lg-4">
+		  			<button class="btn btn-primary btn-block btn-success show-form">Adicionar Trechos</button>
+		  			
+		  		</div>
+		  	</div>
+	  	
+	  	<!-- Fornulário Adicionar Trechos -->
+		  	<div class="row insert-data">
+		  		<div class="col">
 
-					<div class="insert-after"></div>
 
-				  	<div class="row justify-content-md-center space-down">
-				  		<div class="col-lg-6 space-down">
-				  			<button type="submit" class="btn btn-primary btn-block btn-info add">Adicionar Trecho</button>
-				  		</div>
+		  			<form>
 
-				  		<div class="col-lg-6">
-				  			<button type="submit" class="btn btn-primary btn-block btn-success send-data">Enviar Trechos</button>
-				  		</div>
+						<!-- <div class="form-row">
+							<div class="col">
+								<label for="d1">Trecho 1</label>
+								<input pattern="[0-9]*" type="number" class="form-control form-control-sm" name="d1"class="form-control" placeholder="Distância 1 (m)">
+							</div>
+							<div class="col">
+								<label for="v1">&nbsp;</label>
+								<input pattern="[0-9]*" type="number" class="form-control form-control-sm" name="v1"class="form-control" placeholder="Velocidade 1 (m/s)">
+							</div>
+						</div>-->
 
-				  	</div>
-				</form>
-	  		</div>
-	  	</div>
-		<div class="row justify-content-md-center">
-		    <div class="col">
-		      	<div id="zone"></div>
-		    </div>
-	  	</div>
+
+						<div class="insert-after"></div>
+
+
+					  	<div class="row justify-content-md-center space-down buttons_add_trecho">
+					  		<div class="col-lg-6 space-down">
+					  			<button type="submit" class="btn btn-primary btn-block btn-info add">Adicionar Trecho</button>
+					  		</div>
+
+					  		<div class="col-lg-6">
+					  			<button type="submit" class="btn btn-primary btn-block btn-success send-data">Gravar Trechos</button>
+					  		</div>
+
+					  	</div>
+
+					</form>
+
+		  		</div>
+		  	</div>
+		
+		<!-- Controle Joystic -->
+			<div class="row justify-content-md-center">
+			    <div class="col">
+			      	<div id="zone"></div>
+			    </div>
+		  	</div>
+	
+
 	</div>
 	
 	<script src="node_modules/nipplejs/dist/nipplejs.js" charset="utf-8"></script>

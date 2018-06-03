@@ -11,3 +11,11 @@
 .row.insert-data{
 	display: none;
 }
+
+.form-row{
+	margin-top: 10px;
+}
+
+.buttons_add_trecho{
+	margin-top: 10px;
+}
