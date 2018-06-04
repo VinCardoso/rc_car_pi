@@ -29,9 +29,12 @@
 		var 	_self 		= this;
 		var 	date 		= new Date();
 		var 	time 		= date.getTime();
-		var 	size_wheel	= 30; 					// em centimetros
-		var 	wheel_div	= 4;					// divisões na roda
-		var 	dis_mar		= (size_wheel/wheel_div)/100;
+		var 	size_wheel	= 45; 					// em centimetros
+		var 	wheel_div	= 1;					// divisões na roda
+		var 	distance 	= 0;					// Distancia Inicial
+
+
+		var 	dis_m		= (size_wheel/wheel_div)/100;	// Distancia em m
 
 		// Setar Pinos Enable
 
@@ -51,49 +54,38 @@
 		// Carrinho Frente
 			_self.front = function() {
 				_self.pins(1,0,1,0);
-				console.log('Front');
 			}
 
 		// Carro para Trás
 			_self.back = function() {
 				_self.pins(0,1,0,1);
-				console.log('Back');
 			}
 
 		// Calcular Velocidade
 			_self.speed_measure = function(){
+				
 				var date 	= new Date();
 				result 		= date.getTime() - time;
 				time =  date.getTime();
-				
-				// var days_diff= Math.floor(result/1000/60/60/24);
-		  		// result -= days_diff*1000*60*60*24;
-
-		  		// var hours_diff = Math.floor(result/1000/60/60);
-		  		// result -= hours_diff*1000*60*60;
-
-		        // var minutes_diff = Math.floor(result/1000/60);
-		        // result -= minutes_diff*1000*60;
-
-		        // var seconds_diff = Math.floor(result/1000);
-		        // result -= seconds_diff*1000;
-
-		        // var mili_diff = Math.floor(result);
 
 		        seg = result/(1000*60);
-		       	speed = dis_mar/seg;
+		       	speed = dis_m/seg;
 
-		     	// console.log(minutes_diff + ':' + seconds_diff + '.' + mili_diff);
+		       	_self.distance(speed.toFixed(2));
 
 		     	console.log(speed+'m/min');
 
-
-
 			}
 
-		// Enivar velocidade para controle
-			_self.send_speed = function(){
+		// Mensurar distância
+			_self.distance = function(speed){
+				distance = distance + dis_mar;
+				_self.send_run_info(speed,distance.toFixed(2));
+			}
 
+		// Enivar velocidade e distancia para controle
+			_self.send_run_info = function(speed,distance){
+				io.emit('run_info', speed, distance);
 			}
 
 		// Tratar 
@@ -110,7 +102,7 @@
 			pwm1.pwmWrite(duty_right);
 			pwm2.pwmWrite(duty_left);
 
-		}, 10);
+		}, 100);
 
 	// Contando borda de subida e enviadno para o controle
 	

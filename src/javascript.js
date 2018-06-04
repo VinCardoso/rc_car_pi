@@ -44,8 +44,9 @@
     }
  
 // Mostrar velocidade
-    socket.on('valor', function(data) {
-            $('span.result').html(data);
+    socket.on('run_info', function(speed,distance) {
+            $('span.result-speed').html(speed);
+            $('span.result-distance').html(distance);
         });
  
 // Manipular Form e Trechos
