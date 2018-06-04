@@ -128,3 +128,4 @@
         $(".insert-data").toggle();
         return false;
     });
+

@@ -1,55 +1,105 @@
 // Configurações Iniciais
 
 	// Importando Bibliotecas
-		var 	express = require('express');  
-		var 	app = express();  
-		var 	server = require('http').createServer(app);  
-		var 	io = require('socket.io')(server);
-		var		pigpio = require('pigpio'),
-		  		Gpio = pigpio.Gpio;	
+		var 	express 	= require('express');  
+		var 	app 		= express();  
+		var 	server 		= require('http').createServer(app);  
+		var 	io 			= require('socket.io')(server);
+		var		pigpio 		= require('pigpio'),
+		  		Gpio 		= pigpio.Gpio;
 
 	// Configurar Pinos
 		pigpio.configureClock(5, pigpio.CLOCK_PWM);		// Definir Clock do PWM dos motores
 
-		in1 	= new Gpio(5, 	{mode: Gpio.OUTPUT}),	// Enable 1
-		in2 	= new Gpio(6, 	{mode: Gpio.OUTPUT}),	// Enable 2
-		in3 	= new Gpio(27, 	{mode: Gpio.OUTPUT}),	// Enable 3
-		in4 	= new Gpio(22, 	{mode: Gpio.OUTPUT}),	// Enable 4
+		var 	in1 	= new Gpio(5, 	{mode: Gpio.OUTPUT});	// Enable 1
+		var 	in2 	= new Gpio(6, 	{mode: Gpio.OUTPUT});	// Enable 2
+		var 	in3 	= new Gpio(27, 	{mode: Gpio.OUTPUT});	// Enable 3
+		var 	in4 	= new Gpio(22, 	{mode: Gpio.OUTPUT});	// Enable 4
 
-		encoder = new Gpio(26, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE}),	// Sinal de Leitura de Velocidade do Encoder
+		var 	encoder = new Gpio(26, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE});	// Sinal de Leitura de Velocidade do Encoder
 
 		// Set PWM
-		pwm1	= new Gpio(13,	{mode: Gpio.OUTPUT}),	// Saída do PWM Motor 1
-		pwm2	= new Gpio(17,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
+		var 	pwm1	= new Gpio(13,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
+		var 	pwm2	= new Gpio(17,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
 
 // Funções Gerais
 
-	// Funções de Alterar Enable's de acordo com posicionamento
-		function stop(){
-			in1.digitalWrite(1);
-			in2.digitalWrite(1);
-			in3.digitalWrite(1);
-			in4.digitalWrite(1);
-			console.log('Stop');
-		}
+	var car = new function(){
 
-		stop(); // Para carrinho antes de qualquer coisa!
+		var 	_self 		= this;
+		var 	date 		= new Date();
+		var 	time 		= date.getTime();
+		var 	size_wheel	= 30; 					// em centimetros
+		var 	wheel_div	= 4;					// divisões na roda
+		var 	dis_mar		= (size_wheel/wheel_div)/100;
 
-		function front() {
-			in1.digitalWrite(1);
-			in2.digitalWrite(0);
-			in3.digitalWrite(1);
-			in4.digitalWrite(0);
-			console.log('Front');
-		}
+		// Setar Pinos Enable
 
-		function back() {
-			in1.digitalWrite(0);
-			in2.digitalWrite(1);
-			in3.digitalWrite(0);
-			in4.digitalWrite(1);
-			console.log('Back');
-		}
+			_self.pins = function(a,b,c,d){
+				in1.digitalWrite(a);
+				in2.digitalWrite(b);
+				in3.digitalWrite(c);
+				in4.digitalWrite(d);
+			}
+
+		// Parar Carrinho
+			_self.stop = function(){
+				_self.pins(1,1,1,1);
+				console.log('Stop');
+			}
+
+		// Carrinho Frente
+			_self.front = function() {
+				_self.pins(1,0,1,0);
+				console.log('Front');
+			}
+
+		// Carro para Trás
+			_self.back = function() {
+				_self.pins(0,1,0,1);
+				console.log('Back');
+			}
+
+		// Calcular Velocidade
+			_self.speed_measure = function(){
+				var date 	= new Date();
+				result 		= date.getTime() - time;
+				time =  date.getTime();
+				
+				// var days_diff= Math.floor(result/1000/60/60/24);
+		  		// result -= days_diff*1000*60*60*24;
+
+		  		// var hours_diff = Math.floor(result/1000/60/60);
+		  		// result -= hours_diff*1000*60*60;
+
+		        // var minutes_diff = Math.floor(result/1000/60);
+		        // result -= minutes_diff*1000*60;
+
+		        // var seconds_diff = Math.floor(result/1000);
+		        // result -= seconds_diff*1000;
+
+		        // var mili_diff = Math.floor(result);
+
+		        seg = result/(1000*60);
+		       	speed = dis_mar/seg;
+
+		     	// console.log(minutes_diff + ':' + seconds_diff + '.' + mili_diff);
+
+		     	console.log(speed+'m/min');
+
+
+
+			}
+
+		// Enivar velocidade para controle
+			_self.send_speed = function(){
+
+			}
+
+		// Tratar 
+
+	}
+
 
 	// Duty Cycle Inicial
 		duty_left = 0;
@@ -67,8 +117,7 @@
 		total = 0;
 		encoder.on('interrupt', function (level) {
 			  if (level === 1) {
-			    total++;
-				io.emit('valor',total);
+			    car.speed_measure();
 			  }
 		});
 
@@ -76,11 +125,9 @@
 	app.use(express.static(__dirname));  
 	server.listen(80);  
 
-
 // Variáveis para poder setar o mínimo e máximo do PWM
 	min = 0;
 	max = 255;
-
 
 // Conexão com o Controle
 	io.on('connection', function(socket){
@@ -102,9 +149,9 @@
 				}
 
 				if (y<0){
-					front();
+					car.front();
 				}else if(y>0){
-					back();
+					car.back();
 				} 
 
 			});
@@ -113,7 +160,7 @@
 		// Receber Soltou Joystick
 
 			socket.on('unpress', function(a,b){
-				stop();
+				car.stop();
 			});
 
 
