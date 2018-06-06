@@ -95,13 +95,17 @@
 
      
       _self.getTrechos = function(){
-        var trechos = [];
+        var dist    = [];
+        var speed   = [];
+        var ind     = 0;
+        
         $(".form-row").each(function(){
-          var trecho = {};
-          trecho['distancia'] = $(this).find(".input-distancia").val();
-          trecho['velocidade'] = $(this).find(".input-velocidade").val();
-          trechos.push(trecho);
+          dist[ind]   = $(this).find(".input-distancia").val();
+          speed[ind]  = $(this).find(".input-velocidade").val();
+          ind++;
         });
+
+        send('data',dist,speed);
         return trechos;
       }
 
@@ -129,4 +133,3 @@
         $(".insert-data").toggle();
         return false;
     });
-
