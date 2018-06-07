@@ -44,9 +44,11 @@
     }
  
 // Mostrar velocidade
-    socket.on('run_info', function(speed,distance) {
+    socket.on('run_info', function(speed,distance,actual_part,total_part) {
             $('span.result-speed').html(speed);
             $('span.result-distance').html(distance);
+            $('#trecho').html(actual_part);
+            $('#total-part').html(total_part);
         });
  
 // Manipular Form e Trechos
@@ -86,7 +88,7 @@
                    type='number' \
                    class='form-control form-control-sm input-velocidade' \
                    name='v"+n+"' \
-                   placeholder='Velocidade "+n+"\ (m/s)'> \
+                   placeholder='Velocidade "+n+"\ (m/min)'> \
                </div> \
              </div>";
 
@@ -100,8 +102,8 @@
         var ind     = 0;
         
         $(".form-row").each(function(){
-          dist[ind]   = $(this).find(".input-distancia").val();
-          speed[ind]  = $(this).find(".input-velocidade").val();
+          dist[ind]   = Number($(this).find(".input-distancia").val());
+          speed[ind]  = Number($(this).find(".input-velocidade").val());
           ind++;
         });
 
@@ -123,6 +125,7 @@
 // Botão Mostrar Form Trecho
     $("button.show-form").click(function(){
         $(".insert-data").toggle();
+        $(".control").toggle();
     });
  
 // Botão enviar dados
@@ -131,5 +134,29 @@
         console.log(data);
         send('data',JSON.stringify(data));
         $(".insert-data").toggle();
+        $(".control").toggle();
         return false;
+    });
+
+// Botão enviar dados
+    $("button.start-rally").click(function(){
+        send('start','1');
+        $("#row-start-button").hide();
+        return false;
+    });
+
+// Server mandou mostrar botão de inicar corrida
+    socket.on('active-start-button', function() {
+            $("#row-start-button").show();
+        });
+
+// Servidor avisou que a corrida comecou
+    socket.on('rally-started',function(){
+      $('.off-part').hide();
+      $('.on-part').show();
+
+    });
+    socket.on('rally-ended',function(){
+      $('.on-part').hide();
+      $('.off-part').show();
     });

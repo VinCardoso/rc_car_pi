@@ -44,12 +44,23 @@
 
 		var 	_self 			= this;
 
-		// Variaveis Iniciais do Carro
-			var 	dis_m			= (size_wheel/wheel_div)/100;	// Distancia em Metros
-			var 	duty1			= initial_duty;					// DutyCicle da Direita
-			var 	duty2			= initial_duty;					// DutyCicle da Esquerda
-			var 	time 			= date.getTime();				// 0;
-			var 	time_signal		= date.getTime();				// Time Signal
+		// Variaveis do Carro
+			var 	dis_m					= (size_wheel/wheel_div)/100;	// Distancia em Metros entre interrupções do sensor "passadas"
+			var 	duty1					= initial_duty;					// DutyCicle da Direita
+			var 	duty2					= initial_duty;					// DutyCicle da Esquerda
+			var 	time 					= date.getTime();				// Pegar Tempo inicial;
+			var 	time_signal				= date.getTime();				// Pegar Tempo inicial para Sem Sinal
+			var 	part_active 			= false;						// Está no modo trechos (setado após ser enviado e gravado os trecos)
+			var 	car_speed           	= 0;							// Velocidade do Carrinho			
+			var 	car_distance        	= 0;							// Distancia que o Carrinho Percorreu para Mostrar no Controle
+			var 	n_part					= null;							// Número de Trechos
+			var 	part_distance			= null;							// Distancias dos Trechos
+			var 	part_speed				= null;							// Velocidades dos Trechos
+			var 	start_time				= null;							// Tempo que iniciou o modo Trechos
+			var 	part_runed				= null;							// Distância já percorrida no trecho atual
+			var 	actual_part				= null;							// Trecho Atual
+			var 	total_part				= null;							// Total em Metros do Trecho Atual
+
 
 		// Setar Pinos Enable
 			_self.pins = function(a,b,c,d){
@@ -59,21 +70,25 @@
 				in4.digitalWrite(d);
 			}
 
+
 		// PARAR Carrinho
 			_self.stop = function(){
 				_self.pins(1,1,1,1);
-				console.log('Stop');								// ------->> Debug
+				// console.log('Stop');								// ------->> Debug
 			}
+
 
 		// Setar Carro para ir para FRENTE
 			_self.front = function() {
 				_self.pins(1,0,1,0);
 			}
 
+
 		// Setar Carro para ir  para TRÁS
 			_self.back = function() {
 				_self.pins(0,1,0,1);
 			}
+
 
 		// Determinar Direção e Velocidade do Carrinho
 			_self.dir_speed = function(x,y,speed){
@@ -81,11 +96,11 @@
 				// Definir Velocidade dos PWM
 
 					if(x>0){
-						duty1 = ((speed)*max_duty).toFixed(0);
-						duty2 = ((speed - (speed*x))*max_duty).toFixed(0);
+						duty1 = ((speed)*max_duty);
+						duty2 = ((speed - (speed*x))*max_duty);
 					}else if(x<0){
-						duty1 = ((speed - (speed*(-x)))*max_duty).toFixed(0);
-						duty2 = ((speed)*max_duty).toFixed(0);
+						duty1 = ((speed - (speed*(-x)))*max_duty);
+						duty2 = ((speed)*max_duty);
 					}
 
 				// Determinar Velocidade para Carrinho
@@ -107,29 +122,34 @@
 
 			}
 
+
 		// Tratar perda de Sinal
 			_self.no_signal = function(){
 
-				var date_signal 	= new Date();
-				check_time 			= date_signal.getTime() - time_signal;
+				var date_signal 		= new Date();
+				var check_time 			= date_signal.getTime() - time_signal;
 
 				if(check_time > no_signal_time){
-					console.log('Sem Sinal');								// ------->> Debug
+					// console.log('Sem Sinal');								// ------->> Debug
 					_self.stop();
 				}
 			}
+
 
 		// Setar Velocidade dos PWM
 
 			_self.set_speed = function(esq,dir){
 
-				var set_dir = (dir > max_duty && dir < min_duty) ? max_duty : dir;
-				var set_esq	= (esq > max_duty && esq < min_duty) ? max_duty : esq;
+				var set_dir = (dir > max_duty && dir < min_duty) ? max_duty : dir.toFixed(0);
+				var set_esq	= (esq > max_duty && esq < min_duty) ? max_duty : esq.toFixed(0);
+
+				// console.log(set_dir + " " +set_esq);												// ------->> Debug
 
 				pwm1.pwmWrite(set_dir);
 				pwm2.pwmWrite(set_esq);
 
 			}
+
 
 		// Calcular Velocidade
 
@@ -140,35 +160,104 @@
 				time =  date.getTime();
 
 		        seg = result/(1000*60);
-		       	speed = dis_m/seg;
+		       	car_speed = dis_m/seg;
 
-		       	_self.distance(speed.toFixed(2));
+		       	_self.distance();
 
-		     	console.log(speed+'m/min');
+		     	// console.log(speed.toFixed(2)+' m/min');				// ------->> Debug			
 
 			}
 
 		// Mensurar distância
 
-			_self.distance = function(speed){
-				distance = distance + dis_m;
-				_self.send_run_info(speed,distance.toFixed(2));
+			_self.distance = function(){
+				
+				car_distance = car_distance + dis_m;
+				_self.count_run();
+
 			}
 
 		// Enivar velocidade e distancia para controle
 
-			_self.send_run_info = function(speed,distance){
-				io.emit('run_info', speed, distance);
+			_self.send_run_info = function(){
+				speed = car_speed.toFixed(2);
+				distance = car_distance.toFixed(2);
+				// console.log("Velocidade: "+speed+" Distancia: "+distance+" Trecho Atual: "+actual_part+" Total do Trecho: "+total_part); // ------->> Debug	
+				io.emit('run_info', speed, distance,actual_part,total_part);
 			}
 
 		// Tratar Trechos
 
 			_self.set_trechos = function(dist,speed){
-				console.log("Qunatidade de Trechos: " + dist.length);
-				for (i = 0; i < dist.length; i++) {
-    				console.log(dist + " " + speed);
-    				// console.log("Velocidade " + i + " : " + speed[i]);
+
+				if(dist.length < 30){// Condição apenas para tratar um erro que acontece no raspberry que está enviando dados de 38 dados de 1
+
+					console.log(dist);												// ------->> Debug
+					console.log(speed);													// ------->> Debug
+
+					for (i = 0; i < dist.length; i++) {
+	    				// console.log(dist[i] + " " + speed[i]); 						// ------->> Debug
+					}
+
+					part_distance 	= dist;
+					part_speed 		= speed;
+					n_part 			= dist.length;
+
+					// console.log("Qunatidade de Trechos: " + dist.length);			// ------->> Debug
+
+					for (i = 0; i < dist.length; i++) {
+	    				// console.log(dist[i] + " " + speed[i]); 						// ------->> Debug
+					}
+
+					io.emit('active-start-button');
+
 				}
+
+
+			}
+
+		// Inicar Rally
+			_self.start_rally = function(data){
+
+				var data 			= new Date();
+				start_time			= data.getTime();
+
+				part_active			= true;
+				actual_part 		= 1;
+				indice 				= actual_part - 1;
+				total_part  		= part_distance[indice];
+				car_distance		= 0;
+
+				io.emit('rally-started');
+
+				// console.log("Parte Atual:" + actual_part + " Total dessa Parte: " +total_part);				// ------->> Debug
+
+				_self.send_run_info(car_speed, car_distance,actual_part,total_part);
+			}
+
+		// Contar quantidade andada na corrida
+			_self.count_run = function(){
+
+				if(part_active){
+					if(car_distance >= total_part){
+						if(actual_part < n_part){
+							actual_part++;
+							indice = actual_part - 1;
+							total_part = part_distance[indice];
+							car_distance = 0;
+						}else{
+							console.log('Acabou');																// ------->> Debug
+							car_distance = 0;
+							part_active  = false;
+							io.emit('rally-ended')
+																							
+						}
+						
+					}
+
+				}
+
+				_self.send_run_info();
 
 			}
 
@@ -192,19 +281,22 @@
 // Conexão com o Controle
 	
 	// "Ligar" servidor
-	app.use(express.static(__dirname));  
-	server.listen(80);
+		app.use(express.static(__dirname));  
+		server.listen(80);
 
 	// Receber Informações
-	io.on('connection', function(socket){
+		io.on('connection', function(socket){
 
-		// Receber e tratar Joystick para mover carrinho
-			socket.on('joy', function(a,b,c){car.dir_speed(a,b,c)});
+			// Receber e tratar Joystick para mover carrinho
+				socket.on('joy', function(a,b,c){car.dir_speed(a,b,c)});
 
-		// Receber Soltou Joystick
-			socket.on('unpress', function(a,b){car.stop()});
+			// Receber Soltou Joystick
+				socket.on('unpress', function(a,b){car.stop()});
 
-		// Receber Trechos
-			socket.on('data', function(dist,speed){car.set_trechos(dist,speed)});
+			// Receber Trechos
+				socket.on('data', function(dist,speed){car.set_trechos(dist,speed)});
 
-	});
+			// Botão iniciar rally
+				socket.on('start', function(data){car.start_rally(data)});
+
+		});
