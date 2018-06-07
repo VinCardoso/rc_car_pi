@@ -74,7 +74,7 @@
 		// PARAR Carrinho
 			_self.stop = function(){
 				_self.pins(1,1,1,1);
-				// console.log('Stop');								// ------->> Debug
+				// console.log('Stop');										// ------->> Debug
 			}
 
 
@@ -130,7 +130,7 @@
 				var check_time 			= date_signal.getTime() - time_signal;
 
 				if(check_time > no_signal_time){
-					// console.log('Sem Sinal');								// ------->> Debug
+					// console.log('Sem Sinal');							// ------->> Debug
 					_self.stop();
 				}
 			}
@@ -143,7 +143,7 @@
 				var set_dir = (dir > max_duty && dir < min_duty) ? max_duty : dir.toFixed(0);
 				var set_esq	= (esq > max_duty && esq < min_duty) ? max_duty : esq.toFixed(0);
 
-				// console.log(set_dir + " " +set_esq);												// ------->> Debug
+				// console.log(set_dir + " " +set_esq);						// ------->> Debug
 
 				pwm1.pwmWrite(set_dir);
 				pwm2.pwmWrite(set_esq);
@@ -164,9 +164,10 @@
 
 		       	_self.distance();
 
-		     	// console.log(speed.toFixed(2)+' m/min');				// ------->> Debug			
+		     	// console.log(speed.toFixed(2)+' m/min');					// ------->> Debug			
 
 			}
+
 
 		// Mensurar distância
 
@@ -177,6 +178,7 @@
 
 			}
 
+
 		// Enivar velocidade e distancia para controle
 
 			_self.send_run_info = function(){
@@ -186,27 +188,28 @@
 				io.emit('run_info', speed, distance,actual_part,total_part);
 			}
 
+
 		// Tratar Trechos
 
 			_self.set_trechos = function(dist,speed){
 
 				if(dist.length < 30){// Condição apenas para tratar um erro que acontece no raspberry que está enviando dados de 38 dados de 1
 
-					console.log(dist);												// ------->> Debug
-					console.log(speed);													// ------->> Debug
+					// console.log(dist);									// ------->> Debug
+					// console.log(speed);									// ------->> Debug
 
 					for (i = 0; i < dist.length; i++) {
-	    				// console.log(dist[i] + " " + speed[i]); 						// ------->> Debug
+	    				// console.log(dist[i] + " " + speed[i]); 			// ------->> Debug
 					}
 
 					part_distance 	= dist;
 					part_speed 		= speed;
 					n_part 			= dist.length;
 
-					// console.log("Qunatidade de Trechos: " + dist.length);			// ------->> Debug
+					// console.log("Qunatidade de Trechos: " + dist.length);// ------->> Debug
 
 					for (i = 0; i < dist.length; i++) {
-	    				// console.log(dist[i] + " " + speed[i]); 						// ------->> Debug
+	    				// console.log(dist[i] + " " + speed[i]); 			// ------->> Debug
 					}
 
 					io.emit('active-start-button');
@@ -215,6 +218,7 @@
 
 
 			}
+
 
 		// Inicar Rally
 			_self.start_rally = function(data){
@@ -230,10 +234,11 @@
 
 				io.emit('rally-started');
 
-				// console.log("Parte Atual:" + actual_part + " Total dessa Parte: " +total_part);				// ------->> Debug
+				// console.log("Parte Atual:" + actual_part + " Total dessa Parte: " +total_part);	// ------->> Debug
 
 				_self.send_run_info(car_speed, car_distance,actual_part,total_part);
 			}
+
 
 		// Contar quantidade andada na corrida
 			_self.count_run = function(){
@@ -246,7 +251,7 @@
 							total_part = part_distance[indice];
 							car_distance = 0;
 						}else{
-							console.log('Acabou');																// ------->> Debug
+							console.log('Acabou');							// ------->> Debug
 							car_distance = 0;
 							part_active  = false;
 							io.emit('rally-ended')
@@ -261,6 +266,11 @@
 
 			}
 
+		
+		// Verificar se carro está no ponto correto do rally
+			_self.validate_position = function(){
+				
+			} 
 
 	}
 
@@ -284,19 +294,19 @@
 		app.use(express.static(__dirname));  
 		server.listen(80);
 
-	// Receber Informações
+	// Funções recebidas do carrinho
 		io.on('connection', function(socket){
 
-			// Receber e tratar Joystick para mover carrinho
+			// Chegou nova posição do Joystick
 				socket.on('joy', function(a,b,c){car.dir_speed(a,b,c)});
 
-			// Receber Soltou Joystick
+			// Chegou Função soltou Joystick
 				socket.on('unpress', function(a,b){car.stop()});
 
-			// Receber Trechos
+			// Chegou Dados dos Trechos
 				socket.on('data', function(dist,speed){car.set_trechos(dist,speed)});
 
-			// Botão iniciar rally
+			// Chegou botão iniciar rally precionado
 				socket.on('start', function(data){car.start_rally(data)});
 
 		});
