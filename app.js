@@ -11,6 +11,7 @@
 		  		Gpio 		= pigpio.Gpio;
 		var 	date 		= new Date();
 
+
 	// Variáveis de Configurações Iniciais
 	
 		var 	size_wheel		= 45; 		// Tamanho do Pneu (em cm)
@@ -20,6 +21,7 @@
 		var 	min_duty		= 0;		// Valor Mínimo Duty Cicle
 		var 	max_duty		= 254;		// Valor Máximo Duty Cicle
 		var 	no_signal_time	= 2000;		// Tempo sem sinal para cortar velocidade (em milesegundos)
+
 
 	// Configurar Pinos
 
@@ -37,7 +39,6 @@
 		var 	pwm2	= new Gpio(17,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
 		
 	
-
 // Funções Gerais do Carro
 
 	var car = new function(){
@@ -50,17 +51,30 @@
 			var 	duty2					= initial_duty;					// DutyCicle da Esquerda
 			var 	time 					= date.getTime();				// Pegar Tempo inicial;
 			var 	time_signal				= date.getTime();				// Pegar Tempo inicial para Sem Sinal
-			var 	part_active 			= false;						// Está no modo trechos (setado após ser enviado e gravado os trecos)
+
 			var 	car_speed           	= 0;							// Velocidade do Carrinho			
 			var 	car_distance        	= 0;							// Distancia que o Carrinho Percorreu para Mostrar no Controle
-			var 	n_part					= null;							// Número de Trechos
-			var 	part_distance			= null;							// Distancias dos Trechos
-			var 	part_speed				= null;							// Velocidades dos Trechos
-			var 	start_time				= null;							// Tempo que iniciou o modo Trechos
-			var 	part_runed				= null;							// Distância já percorrida no trecho atual
-			var 	actual_part				= null;							// Trecho Atual
-			var 	total_part				= null;							// Total em Metros do Trecho Atual
+			
+			var 	part_active 			= false;						// Está no modo trechos (setado após ser enviado e gravado os trecos)
+			var 	start_time				= 0;							// Tempo que iniciou o modo Trechos
 
+			var 	n_part					= 0;							// Número de Trechos
+			var 	part_distance			= 0;							// Distancias dos Trechos
+			var 	part_speed				= 0;							// Velocidades dos Trechos
+
+			var 	actual_part				= 0;							// Trecho Atual
+			var 	indice_part 			= 0;							// Indice do trecho atual
+			var 	total_part_distance	 	= 0;							// Total em Metros do Trecho Atual
+			var 	total_part_speed 		= 0;							// Tempo total que o Trecho atual deve ter
+			var 	total_part_time			= 0;							// Tempo, em milisegundos, que o trecho atual deve ser feito
+
+			var 	part_start_time			= 0;							// Quando começou o trecho atual
+			var 	when_finish_part		= 0;							// Quando deve terminar o trecho atual
+
+			var 	part_runed				= 0;							// Distância já percorrida no trecho atual
+			var 	part_erro 				= 0;							// Erro de distancia do trecho atual em realção ao que ele deveria ter andado
+			
+			
 
 		// Setar Pinos Enable
 			_self.pins = function(a,b,c,d){
@@ -151,41 +165,53 @@
 			}
 
 
+		// Tratar interrupção do Senor
+
+			_self.sensor_interrupt = function(){
+
+				_self.speed_calc();			// Mandar calcular velocidade
+				_self.distance_calc();		// Mandar calcular distância
+				_self.count_run();			// Mandar contar caso esteja em modo Trehcos
+				_self.send_run_info(); 		// Enviar informações para o carrinho
+
+			}
+
 		// Calcular Velocidade
 
-			_self.speed_measure = function(){
+			_self.speed_calc = function(){
 
-				var date 	= new Date();
-				result 		= date.getTime() - time;
-				time =  date.getTime();
+				var date 		= new Date();
+				result 			= date.getTime() - time;
+				time 			= date.getTime(); 
 
-		        seg = result/(1000*60);
-		       	car_speed = dis_m/seg;
-
-		       	_self.distance();
+		        seg 			= result/(1000*60);
+		       	car_speed 		= dis_m/seg;
 
 		     	// console.log(speed.toFixed(2)+' m/min');					// ------->> Debug			
 
 			}
 
 
-		// Mensurar distância
+		// Calcular Distancia Percorrida
 
-			_self.distance = function(){
-				
-				car_distance = car_distance + dis_m;
-				_self.count_run();
-
+			_self.distance_calc = function(){
+				car_distance 	= car_distance + dis_m;
+				part_runed 		= car_distance;
 			}
 
-
+ 
 		// Enivar velocidade e distancia para controle
 
 			_self.send_run_info = function(){
-				speed = car_speed.toFixed(2);
-				distance = car_distance.toFixed(2);
-				// console.log("Velocidade: "+speed+" Distancia: "+distance+" Trecho Atual: "+actual_part+" Total do Trecho: "+total_part); // ------->> Debug	
-				io.emit('run_info', speed, distance,actual_part,total_part);
+				a 		= car_speed.toFixed(2);
+				b 		= car_distance.toFixed(2);
+				c		= actual_part;
+				d		= total_part_distance.toFixed(2);
+				e		= part_erro.toFixed(2);
+
+				
+				// console.log("speed: "+a+"	distance: "+b+"	actual_part: "+c+"	total_part_distance: "+d+"	part_erro: "+e); // ------->> Debug	
+				io.emit('run_info', a, b, c, d, e);
 			}
 
 
@@ -228,15 +254,14 @@
 
 				part_active			= true;
 				actual_part 		= 1;
-				indice 				= actual_part - 1;
-				total_part  		= part_distance[indice];
-				car_distance		= 0;
+				
+				_self.def_actual_part_variables();
 
 				io.emit('rally-started');
 
-				// console.log("Parte Atual:" + actual_part + " Total dessa Parte: " +total_part);	// ------->> Debug
+				// console.log("Parte Atual:" + actual_part + " Total dessa Parte: " +total_part_distance);	// ------->> Debug
 
-				_self.send_run_info(car_speed, car_distance,actual_part,total_part);
+				_self.send_run_info(car_speed, car_distance,actual_part,total_part_distance);
 			}
 
 
@@ -244,16 +269,24 @@
 			_self.count_run = function(){
 
 				if(part_active){
-					if(car_distance >= total_part){
+					_self.validate_position();
+
+					if(car_distance >= total_part_distance){
+
+					// Terminou um trecho e passar para próximo
 						if(actual_part < n_part){
+
 							actual_part++;
-							indice = actual_part - 1;
-							total_part = part_distance[indice];
-							car_distance = 0;
+							_self.def_actual_part_variables();
+
+
+					// Acabou último trecho 
 						}else{
+
+							car_distance 	= 0;
+							part_active  	= false;
+
 							console.log('Acabou');							// ------->> Debug
-							car_distance = 0;
-							part_active  = false;
 							io.emit('rally-ended')
 																							
 						}
@@ -262,15 +295,51 @@
 
 				}
 
-				_self.send_run_info();
-
 			}
 
 		
 		// Verificar se carro está no ponto correto do rally
 			_self.validate_position = function(){
-				
+
+				var data 				= new Date();
+				time 					= data.getTime() - part_start_time;
+
+				whould_ride 			= time*(total_part_speed/60/100);
+
+				// whould_ride 			= (time/total_part_time)*car_distance;
+				speed_part 				= car_distance - whould_ride;
+				// dif_car_distance 		= car_distance - whould_ride;
+
+				console.log("total_part_time 	"+total_part_time);												// ------->> Debug
+
+				// part_erro 				= dif_car_distance.toFixed(2);
+				part_erro					= speed_part;
+
+				console.log("part_erro 	"+part_erro);												// ------->> Debug
+
 			} 
+
+		// Definir Informações do Trecho Atual
+			_self.def_actual_part_variables = function(){
+
+				var data 				= new Date();
+			
+				car_distance 			= 0;
+				part_runed 				= car_distance;
+
+				part_start_time			= data.getTime();
+				indice_part 			= actual_part - 1;
+				total_part_distance  	= part_distance[indice_part];
+				total_part_speed		= part_speed[indice_part];
+
+
+
+				total_part_time			= (total_part_distance/part_speed)*(1*60000);
+				when_finish_part		= part_start_time+total_part_time;
+
+				console.log("total_part_distance: "+total_part_distance+"	total_part_speed: "+part_speed);												// ------->> Debug
+
+			}
 
 	}
 
@@ -284,7 +353,7 @@
 	
 	encoder.on('interrupt', function (level) {
 		  if(level === 1){
-		    car.speed_measure();
+		    car.sensor_interrupt();
 		  }
 	});
 

@@ -1,3 +1,9 @@
+
+      var position_c  = null;             // Posição do centro do elemento
+      var position_b  = {};
+      var size        = null;           // Distancia do centro para as bordas
+      var mult        = null;       
+
 // Criar Joystick
     var joystic = nipplejs.create({
         zone: document.getElementById('zone'),
@@ -9,14 +15,20 @@
     });
  
 // Ver qual o ponto central do Joystick na página
-    var position_c  = $('.nipple .front').offset();             // Posição do centro do elemento
-    var position_b  = {};
-    var size        = ($('.nipple .front').height());           // Distancia do centro para as bordas
-    var mult        = 1/size;      
-     
-    jQuery.each(position_c,function(key,value){
-        position_b[key]=value-(size/2);                         // Posição da borda do elemento
-    });
+    function valid_positon(){
+      
+      position_c  = $('.nipple .front').offset();             // Posição do centro do elemento
+      position_b  = {};
+      size        = ($('.nipple .front').height());           // Distancia do centro para as bordas
+      mult        = 1/size;      
+       
+      jQuery.each(position_c,function(key,value){
+          position_b[key]=value-(size/2);                         // Posição da borda do elemento
+      });
+    }
+
+    valid_positon();
+    
  
 // Enviar informação quando joystic movimentar
     joystic.on('move',function (evt, data) {
@@ -44,11 +56,12 @@
     }
  
 // Mostrar velocidade
-    socket.on('run_info', function(speed,distance,actual_part,total_part) {
+    socket.on('run_info', function(speed,distance,actual_part,total_part,error) {
             $('span.result-speed').html(speed);
             $('span.result-distance').html(distance);
             $('#trecho').html(actual_part);
             $('#total-part').html(total_part);
+            $("#distance-erro").html(error);
         });
  
 // Manipular Form e Trechos
@@ -154,9 +167,11 @@
     socket.on('rally-started',function(){
       $('.off-part').hide();
       $('.on-part').show();
+      valid_positon();
 
     });
     socket.on('rally-ended',function(){
       $('.on-part').hide();
       $('.off-part').show();
+      valid_positon();
     });
