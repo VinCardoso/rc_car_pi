@@ -1,177 +1,248 @@
-
-      var position_c  = null;             // Posição do centro do elemento
-      var position_b  = {};
-      var size        = null;           // Distancia do centro para as bordas
-      var mult        = null;       
-
-// Criar Joystick
-    var joystic = nipplejs.create({
-        zone: document.getElementById('zone'),
-        mode: 'static',
-        size: 300,
-        threshold: 1,
-        position: {left: '50%', top: '50%'},
-        color: 'red'
-    });
- 
-// Ver qual o ponto central do Joystick na página
-    function valid_positon(){
-      
-      position_c  = $('.nipple .front').offset();             // Posição do centro do elemento
-      position_b  = {};
-      size        = ($('.nipple .front').height());           // Distancia do centro para as bordas
-      mult        = 1/size;      
-       
-      jQuery.each(position_c,function(key,value){
-          position_b[key]=value-(size/2);                         // Posição da borda do elemento
-      });
-    }
-
-    valid_positon();
-    
- 
-// Enviar informação quando joystic movimentar
-    joystic.on('move',function (evt, data) {
-     
-        x_default = (data.position.x - position_b.left - size)*mult;
-        y_default = (data.position.y - position_b.top - size)*mult;
-     
-        x = x_default.toFixed(3);
-        y = y_default.toFixed(3);
-     
-        distance = (data.distance*mult).toFixed(3);
-     
-        send('joy',x,y,distance);
-        console.log("X = "+x+" Y = "+y+" Distance = "+distance);
-     
-    }).on('end',function(evt,data){
-        send('unpress',1);
-    });
-
-// Enviar informação quando joystic movimentar
-    var socket = io.connect();
-
-    function send(type,a,b,c){
-        socket.emit(type,a,b,c);
-    }
- 
-// Mostrar velocidade
-    socket.on('run_info', function(speed,distance,actual_part,total_part,error) {
-            $('span.result-speed').html(speed);
-            $('span.result-distance').html(distance);
-            $('#trecho').html(actual_part);
-            $('#total-part').html(total_part);
-            $("#distance-erro").html(error);
-        });
- 
-// Manipular Form e Trechos
- 
-    var trechos = new function(){
-      var _self = this;
-
-      _self.n_trechos_iniciais = 1;
-      _self.n_trechos = 0;
-     
-      // Adicionar campos de trechos iniciais
-          _self.init = function(){
-            for (i = 0; i < _self.n_trechos_iniciais; i++) {
-                _self.addTrecho();
-            }
-          }
-     
-          _self.addTrecho = function(){
-            
-            _self.n_trechos++;
-            var n = _self.n_trechos;
-
-            html_trecho = "\
-             <div class='form-row row-data'>\
-               <div class='col'>\
-                 <label for='d1'>Trecho "+n+"</label>\
-                 <input pattern='[0-9]*' \
-                        type='number'  \
-                        class='form-control form-control-sm input-distancia' \
-                        name='d"+n+"'\
-                        placeholder='Distância "+n+" (m)'>\
-               </div>\
-               <div class='col'>\
-                 <label for='v"+n+"'>&nbsp;</label>\
-                 <input \
-                   pattern='[0-9]*' \
-                   type='number' \
-                   class='form-control form-control-sm input-velocidade' \
-                   name='v"+n+"' \
-                   placeholder='Velocidade "+n+"\ (m/min)'> \
-               </div> \
-             </div>";
-
-            $(".insert-input").before(html_trecho);
-          }
-
-     
-      _self.getTrechos = function(){
-        var dist    = [];
-        var speed   = [];
-        var ind     = 0;
+// Convigurações
         
-        $(".form-row").each(function(){
-          dist[ind]   = Number($(this).find(".input-distancia").val());
-          speed[ind]  = Number($(this).find(".input-velocidade").val());
-          ind++;
-        });
+        var     initial_parts   =   1;              // Quantidade Inicial de Trechos              
 
-        send('data',dist,speed);
-        return trechos;
-      }
+// Variáveis Globais
+        
+        var     socket          =   io.connect();
+        var     position_c      =   null;             // Posição do centro do elemento
+        var     position_b      =   {};
+        var     size            =   null;           // Distancia do centro para as bordas
+        var     mult            =   null;
+        var     joystic         =   null;
+        var     joy_x           =   null;
+        var     joy_y           =   null;
+        var     joy_distance    =   null;
+        var     x               =   null;
+        var     y               =   null;
+        var     distance        =   null;
 
-      _self.init();
-     
-    };
+
+
+// Objeto Carro
+
+    var car = new function(){
+
+        _self = this;
+
+        // Criar Joystick
+
+            _self.create_joy = function(){
+
+                joystic = nipplejs.create({
+                zone: document.getElementById('zone'),
+                mode: 'static',
+                size: 300,
+                threshold: 1,
+                position: {left: '50%', top: '50%'},
+                color: 'red'
+                });
+
+            }
+
+        // Checar posição do Joystic
+
+            _self.check_joy_position = function(){
+
+                position_c  = $('.nipple .front').offset();             // Posição do centro do elemento
+                position_b  = {};
+                size        = ($('.nipple .front').height());           // Distancia do centro para as bordas
+                mult        = 1/size;      
+                 
+                jQuery.each(position_c,function(key,value){
+                    position_b[key]=value-(size/2);                         // Posição da borda do elemento
+                });
+
+            }
+
+        // Calcular Movimentação do Joystick
+
+            _self.calc_joy_move = function(){
+
+                x_default = (joy_x - position_b.left - size)*mult;
+                y_default = (joy_y - position_b.top - size)*mult;
+             
+                x = x_default.toFixed(3);
+                y = y_default.toFixed(3);
+             
+                distance = joy_distance * mult;
+
+                _self.send_joy();
+             
+            }
+
+        // Enviar informações do Joystic
+
+            _self.send_joy = function(){
+                socket.emit('joy',x,y,distance.toFixed(3));
+                // console.log("X = "+x+" Y = "+y+" Distance = "+distance.toFixed(3));                                    // ------->> Debug 
+            }
+
+        // Enviar informação que soltou Joystic
+
+            _self.send_stop = function(){
+                socket.emit('stop-car');
+            }
+
+        // Colocar Trechos Inicais
+
+            _self.init = function(){
+                for (i = 0; i < initial_parts; i++) {
+                    _self.add_part_form();
+                }
+            }
+
+        // Adicionar novo campo para trecho na interface
+
+            _self.n_trechos = 0;
+
+            _self.add_part_form = function(){
+            
+                _self.n_trechos++;
+                var n = _self.n_trechos;
+
+                html_trecho = "\
+                 <div class='form-row row-data'>\
+                   <div class='col'>\
+                     <label for='d1'>Trecho "+n+"</label>\
+                     <input pattern='[0-9]*' \
+                            type='number'  \
+                            class='form-control form-control-sm input-distancia' \
+                            name='d"+n+"'\
+                            placeholder='Distância "+n+" (m)'>\
+                   </div>\
+                   <div class='col'>\
+                     <label for='v"+n+"'>&nbsp;</label>\
+                     <input \
+                       pattern='[0-9]*' \
+                       type='number' \
+                       class='form-control form-control-sm input-velocidade' \
+                       name='v"+n+"' \
+                       placeholder='Velocidade "+n+"\ (m/min)'> \
+                   </div> \
+                 </div>";
+
+                $(".insert-input").before(html_trecho);
+            }
+
+        // Enviar Trechos
+
+            _self.send_parts = function(){
+
+                var     dist            =   [];
+                var     speed           =   [];
+                var     ind             =   0;
+
+                $(".form-row").each(function(){
+                    dist[ind]   = Number($(this).find(".input-distancia").val());
+                    speed[ind]  = Number($(this).find(".input-velocidade").val());
+                    ind++;
+                });
+
+                socket.emit('parts',dist,speed);
+
+                console.log(dist);
+                console.log(speed);
+            
+            }
+
+        // Ações Iniciais
+
+            _self.create_joy();
+            _self.check_joy_position();
+            _self.init();
+
+    }
+
+ 
+// Ação Quando Joystick se Movimentar
+
+    joystic.on('move',function (evt, data) {
+        
+        joy_x           = data.position.x;
+        joy_y           = data.position.y;
+        joy_distance    = data.distance;
+
+        car.calc_joy_move();
+
+
+// Ação Quando Joystick for Solto
+
+    }).on('end',function(evt,data){
+        car.send_stop();
+    });    
+
  
 // Botão Adicionar Trecho
+
     $("button.add").click(function(evt){
         evt.preventDefault();
-        trechos.addTrecho();
+        car.add_part_form();
         return false;
     });
  
-// Botão Mostrar Form Trecho
+
+// Botão Mostrar ou Esconder Form
+
     $("button.show-form").click(function(){
         $(".insert-data").toggle();
         $(".control").toggle();
+        car.check_joy_position();
     });
  
-// Botão enviar dados
+
+// Botão Enviar Trechos
+
     $("button.send-data").click(function(){
-        var data = trechos.getTrechos();
-        console.log(data);
-        send('data',JSON.stringify(data));
+        car.send_parts();
         $(".insert-data").toggle();
         $(".control").toggle();
+        car.check_joy_position();
         return false;
     });
 
-// Botão enviar dados
+
+// Botão Começar Rally
+
     $("button.start-rally").click(function(){
-        send('start','1');
+        socket.emit('start','1');
         $("#row-start-button").hide();
         return false;
     });
 
+
 // Server mandou mostrar botão de inicar corrida
+
     socket.on('active-start-button', function() {
-            $("#row-start-button").show();
-        });
+        $("#row-start-button").show();
+    });
+
 
 // Servidor avisou que a corrida comecou
+
     socket.on('rally-started',function(){
       $('.off-part').hide();
       $('.on-part').show();
-      valid_positon();
+      car.check_joy_position();
 
     });
+
+
+// Servidor disse que rally acaboy
+
     socket.on('rally-ended',function(){
       $('.on-part').hide();
       $('.off-part').show();
-      valid_positon();
+      car.check_joy_position();
+    });
+
+
+// Mostrar velocidade
+    
+    socket.on('run_info', function(speed,distance,actual_part,total_part,error) {
+        $('span.result-speed').html(speed);
+        $('span.result-distance').html(distance);
+        $('#trecho').html(actual_part);
+        $('#total-part').html(total_part);
+        $("#distance-erro").html(error);
     });

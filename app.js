@@ -47,10 +47,13 @@
 
 		// Variaveis do Carro
 			var 	dis_m					= (size_wheel/wheel_div)/100;	// Distancia em Metros entre interrupções do sensor "passadas"
-			var 	duty1					= initial_duty;					// DutyCicle da Direita
-			var 	duty2					= initial_duty;					// DutyCicle da Esquerda
+			var 	duty_dir				= initial_duty;					// DutyCicle da Direita
+			var 	duty_esq				= initial_duty;					// DutyCicle da Esquerda
 			var 	time 					= date.getTime();				// Pegar Tempo inicial;
 			var 	time_signal				= date.getTime();				// Pegar Tempo inicial para Sem Sinal
+
+			var 	set_esq 				= initial_duty;
+			var 	set_dir 				= initial_duty;
 
 			var 	car_speed           	= 0;							// Velocidade do Carrinho			
 			var 	car_distance        	= 0;							// Distancia que o Carrinho Percorreu para Mostrar no Controle
@@ -70,13 +73,16 @@
 
 			var 	part_start_time			= 0;							// Quando começou o trecho atual
 			var 	when_finish_part		= 0;							// Quando deve terminar o trecho atual
+			var 	time_valid_pos			= date.getTime();
 
 			var 	part_runed				= 0;							// Distância já percorrida no trecho atual
 			var 	part_erro 				= 0;							// Erro de distancia do trecho atual em realção ao que ele deveria ter andado
 			
-			
+			var 	esq 					= 0;
+			var 	dir 					= 0;
 
 		// Setar Pinos Enable
+
 			_self.pins = function(a,b,c,d){
 				in1.digitalWrite(a);
 				in2.digitalWrite(b);
@@ -86,6 +92,7 @@
 
 
 		// PARAR Carrinho
+
 			_self.stop = function(){
 				_self.pins(1,1,1,1);
 				// console.log('Stop');										// ------->> Debug
@@ -93,34 +100,39 @@
 
 
 		// Setar Carro para ir para FRENTE
+
 			_self.front = function() {
 				_self.pins(1,0,1,0);
 			}
 
 
 		// Setar Carro para ir  para TRÁS
+
 			_self.back = function() {
 				_self.pins(0,1,0,1);
 			}
 
 
 		// Determinar Direção e Velocidade do Carrinho
+
 			_self.dir_speed = function(x,y,speed){
 
 				// Definir Velocidade dos PWM
 
 					if(x>0){
-						duty1 = ((speed)*max_duty);
-						duty2 = ((speed - (speed*x))*max_duty);
+						
+						duty_esq 	= (speed * max_duty);
+						duty_dir 	= ((speed - (speed * x)) * max_duty);
+
 					}else if(x<0){
-						duty1 = ((speed - (speed*(-x)))*max_duty);
-						duty2 = ((speed)*max_duty);
+						
+						duty_esq 	= ((speed - (speed * (-x) )) * max_duty);
+						dut_dir 	= (speed * max_duty);
+
 					}
 
-				// Determinar Velocidade para Carrinho
-					
-					_self.set_speed(duty1,duty2);
-				
+					_self.set_speed(duty_esq,duty_dir);
+
 				// Selecionar Direção Frente ou Trás
 
 					if (y<0){
@@ -154,9 +166,11 @@
 
 			_self.set_speed = function(esq,dir){
 
-				var set_dir = (dir > max_duty && dir < min_duty) ? max_duty : dir.toFixed(0);
-				var set_esq	= (esq > max_duty && esq < min_duty) ? max_duty : esq.toFixed(0);
-
+				if(!isNaN(esq) || !isNaN(esq)){
+					set_dir = (dir > max_duty && dir < min_duty) ? max_duty : dir.toFixed(0);
+					set_esq	= (esq > max_duty && esq < min_duty) ? max_duty : esq.toFixed(0);
+				}
+				
 				// console.log(set_dir + " " +set_esq);						// ------->> Debug
 
 				pwm1.pwmWrite(set_dir);
@@ -176,18 +190,23 @@
 
 			}
 
+
 		// Calcular Velocidade
 
 			_self.speed_calc = function(){
 
 				var date 		= new Date();
-				result 			= date.getTime() - time;
+				// console.log("time: "+time)					// ------->> Debug	
+				var result 		= date.getTime() - time;
 				time 			= date.getTime(); 
+
+				// console.log("Resultado: "+result)					// ------->> Debug	
+
 
 		        seg 			= result/(1000*60);
 		       	car_speed 		= dis_m/seg;
 
-		     	// console.log(speed.toFixed(2)+' m/min');					// ------->> Debug			
+		     	// console.log(car_speed.toFixed(2)+' m/min');					// ------->> Debug			
 
 			}
 
@@ -195,8 +214,10 @@
 		// Calcular Distancia Percorrida
 
 			_self.distance_calc = function(){
+
 				car_distance 	= car_distance + dis_m;
-				part_runed 		= car_distance;
+				part_runed 		= (part_active) ? car_distance : 0;
+				
 			}
 
  
@@ -209,7 +230,6 @@
 				d		= total_part_distance.toFixed(2);
 				e		= part_erro.toFixed(2);
 
-				
 				// console.log("speed: "+a+"	distance: "+b+"	actual_part: "+c+"	total_part_distance: "+d+"	part_erro: "+e); // ------->> Debug	
 				io.emit('run_info', a, b, c, d, e);
 			}
@@ -219,24 +239,17 @@
 
 			_self.set_trechos = function(dist,speed){
 
+				// console.log("Recebido"); 									// ------->> Debug
+
 				if(dist.length < 30){// Condição apenas para tratar um erro que acontece no raspberry que está enviando dados de 38 dados de 1
 
-					// console.log(dist);									// ------->> Debug
-					// console.log(speed);									// ------->> Debug
+					// for (i = 0; i < dist.length; i++) {
+	    				
+					// }
 
-					for (i = 0; i < dist.length; i++) {
-	    				// console.log(dist[i] + " " + speed[i]); 			// ------->> Debug
-					}
-
-					part_distance 	= dist;
-					part_speed 		= speed;
 					n_part 			= dist.length;
-
-					// console.log("Qunatidade de Trechos: " + dist.length);// ------->> Debug
-
-					for (i = 0; i < dist.length; i++) {
-	    				// console.log(dist[i] + " " + speed[i]); 			// ------->> Debug
-					}
+					part_distance 	= dist;
+					part_speed 		= speed;			
 
 					io.emit('active-start-button');
 
@@ -261,7 +274,7 @@
 
 				// console.log("Parte Atual:" + actual_part + " Total dessa Parte: " +total_part_distance);	// ------->> Debug
 
-				_self.send_run_info(car_speed, car_distance,actual_part,total_part_distance);
+				_self.send_run_info();
 			}
 
 
@@ -302,9 +315,9 @@
 			_self.validate_position = function(){
 
 				var data 				= new Date();
-				time 					= data.getTime() - part_start_time;
+				time_valid_pos 			= data.getTime() - part_start_time;
 
-				whould_ride 			= time*(total_part_speed/60/100);
+				whould_ride 			= time_valid_pos*(total_part_speed/60/100);
 
 				// whould_ride 			= (time/total_part_time)*car_distance;
 				speed_part 				= car_distance - whould_ride;
@@ -318,6 +331,7 @@
 				console.log("part_erro 	"+part_erro);												// ------->> Debug
 
 			} 
+
 
 		// Definir Informações do Trecho Atual
 			_self.def_actual_part_variables = function(){
@@ -340,6 +354,7 @@
 				console.log("total_part_distance: "+total_part_distance+"	total_part_speed: "+part_speed);												// ------->> Debug
 
 			}
+
 
 	}
 
@@ -367,13 +382,13 @@
 		io.on('connection', function(socket){
 
 			// Chegou nova posição do Joystick
-				socket.on('joy', function(a,b,c){car.dir_speed(a,b,c)});
+				socket.on('joy', function(x,y,distance){car.dir_speed(x,y,distance)});
 
 			// Chegou Função soltou Joystick
-				socket.on('unpress', function(a,b){car.stop()});
+				socket.on('stop-car', function(){car.stop()});
 
 			// Chegou Dados dos Trechos
-				socket.on('data', function(dist,speed){car.set_trechos(dist,speed)});
+				socket.on('parts', function(dist,speed){car.set_trechos(dist,speed)});
 
 			// Chegou botão iniciar rally precionado
 				socket.on('start', function(data){car.start_rally(data)});
