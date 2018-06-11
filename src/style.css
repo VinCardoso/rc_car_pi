@@ -8,6 +8,14 @@
 	margin-bottom: 10px;
 }
 
+.space-up{
+	margin-top: 10px;
+}
+
+.speed-title{
+	margin-top: 10px;
+}
+
 .row.insert-data{
 	display: none;
 }
@@ -25,12 +33,12 @@
 }
 
 .total-part,.aux-total-part{
-	font-size: 16px;
+	font-size: 20px;
 	color: #28a745;
 }
 
 .aux-total-part{
-	font-size: 11px;
+	font-size: 14px;
 }
 
 .buttons_add_trecho{

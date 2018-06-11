@@ -16,6 +16,9 @@
         var     x               =   null;
         var     y               =   null;
         var     distance        =   null;
+        var     error           =   0;
+        var     error_calc      =   0;
+
 
 
 
@@ -44,13 +47,13 @@
 
             _self.check_joy_position = function(){
 
-                position_c  = $('.nipple .front').offset();             // Posição do centro do elemento
+                position_c  = $('.nipple .front').offset();            // Posição do centro do elemento
                 position_b  = {};
-                size        = ($('.nipple .front').height());           // Distancia do centro para as bordas
+                size        = $('.nipple .front').height();           // Distancia do centro para as bordas
                 mult        = 1/size;      
                  
                 jQuery.each(position_c,function(key,value){
-                    position_b[key]=value-(size/2);                         // Posição da borda do elemento
+                    position_b[key]=value-(size/2);                   // Posição da borda do elemento
                 });
 
             }
@@ -75,7 +78,7 @@
 
             _self.send_joy = function(){
                 socket.emit('joy',x,y,distance.toFixed(3));
-                // console.log("X = "+x+" Y = "+y+" Distance = "+distance.toFixed(3));                                    // ------->> Debug 
+                console.log("X = "+x+" Y = "+y+" Distance = "+distance.toFixed(3));                                    // ------->> Debug 
             }
 
         // Enviar informação que soltou Joystic
@@ -152,6 +155,21 @@
             _self.check_joy_position();
             _self.init();
 
+        // Validar Cor Erro
+            _self.color_erro = function(){
+                
+                    error_div = $("#error-div");
+
+                    if(error_calc < 0.25 && error_calc > -0.25){
+                        error_div.css('background-color','#d4edda');
+                    }else if(error_calc > 0.25){
+                        error_div.css('background-color','#fff3cd');
+                    }else if(error_calc < -0.25){
+                        error_div.css('background-color','#f8d7da');
+                    }
+
+            }
+
     }
 
  
@@ -187,7 +205,7 @@
     $("button.show-form").click(function(){
         $(".insert-data").toggle();
         $(".control").toggle();
-        car.check_joy_position();
+        // car.check_joy_position();
     });
  
 
@@ -197,7 +215,7 @@
         car.send_parts();
         $(".insert-data").toggle();
         $(".control").toggle();
-        car.check_joy_position();
+        // car.check_joy_position();
         return false;
     });
 
@@ -223,7 +241,7 @@
     socket.on('rally-started',function(){
       $('.off-part').hide();
       $('.on-part').show();
-      car.check_joy_position();
+      // car.check_joy_position();
 
     });
 
@@ -233,16 +251,18 @@
     socket.on('rally-ended',function(){
       $('.on-part').hide();
       $('.off-part').show();
-      car.check_joy_position();
+      // setTimeout(car.check_joy_position(), 200);
     });
 
 
 // Mostrar velocidade
     
-    socket.on('run_info', function(speed,distance,actual_part,total_part,error) {
+    socket.on('run_info', function(speed,distance,actual_part,total_part,error){
         $('span.result-speed').html(speed);
         $('span.result-distance').html(distance);
         $('#trecho').html(actual_part);
         $('#total-part').html(total_part);
         $("#distance-erro").html(error);
+        error_calc = error;
+        car.color_erro();
     });

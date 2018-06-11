@@ -24,7 +24,7 @@
 		
 
 
-		var 		mini_car 		= true;     // Falar se estou usando o carro pequeno
+		var 		mini_car 		= false;     // Falar se estou usando o carro pequeno
 		var 		mini_size_wheel	= 22; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini)
 		var 		mini_wheel_div	= 20;
 		
@@ -194,11 +194,22 @@
 			_self.set_speed = function(esq,dir){
 
 				if(!isNaN(esq) || !isNaN(esq)){
-					set_dir = (dir > max_duty && dir < min_duty) ? max_duty : dir.toFixed(0);
-					set_esq	= (esq > max_duty && esq < min_duty) ? max_duty : esq.toFixed(0);
+
+					if(esq > min_duty){
+						set_esq	= (esq > max_duty) ? max_duty : esq.toFixed(0);
+					}else{
+						set_esq = 0;
+					}
+
+					if(dir > min_duty){
+						set_dir = (dir > max_duty) ? max_duty : dir.toFixed(0);
+					}else{
+						set_dir = 0;
+					}
+					
 				}
 				
-				// console.log(set_dir + " " +set_esq);						// ------->> Debug
+				console.log(set_dir + " " +set_esq);						// ------->> Debug
 
 				pwm1.pwmWrite(set_dir);
 				pwm2.pwmWrite(set_esq);
@@ -259,7 +270,7 @@
 				a 		= car_speed.toFixed(2);
 				b 		= car_distance.toFixed(2);
 				c		= actual_part;
-				d		= total_part_distance.toFixed(2);
+				d		= total_part_distance.toFixed(1);
 				e		= part_erro.toFixed(2);
 
 				// console.log("speed: "+a+"	distance: "+b+"	actual_part: "+c+"	total_part_distance: "+d+"	part_erro: "+e); // ------->> Debug	
@@ -308,7 +319,7 @@
 
 				_self.send_run_info();
 			}
-
+			
 
 		// Contar quantidade andada na corrida
 			_self.count_run = function(){
@@ -330,6 +341,9 @@
 
 							car_distance 	= 0;
 							part_active  	= false;
+							actual_part 	= "No";
+							error 			= "No";
+							// total_part_distance = 0;
 
 							console.log('Acabou');							// ------->> Debug
 							io.emit('rally-ended')

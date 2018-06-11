@@ -15,35 +15,35 @@
 	<div class="container geral">
 		
 		<!-- Título -->
-			<div class="row">
+			<!-- <div class="row">
 			    <div class="col">
 			      <h1>Controle Carro</h1>
 			    </div>
 		  	</div>
-
+ -->
 		<!-- Velocidade -->
 		  	<div class="row">
-		  		<div class="col">
-		  			<h2>Velocidade:</h2>
-		  			<h3><span class="badge badge-secondary result-speed">0</span> m/min</h3>
+		  		<div class="col-8">
+		  			<h4 class="text-center speed-title">Velocidade:</h4>
+		  			<h2 class="text-center"><span class="badge badge-secondary result-speed ">0</span> m/min</h2>
 			  	</div>
-			  	<div class="col distance off-part">
-		  			<h2>Distância:</h2>
-		  			<h3><span class="badge badge-secondary result-distance">0</span> m</h3>
-			  	</div>
-			  	<div class="col distance on-part">
-		  			<h2>Trecho <span class="badge badge-secondary" id="trecho">0</span></h2>
-		  			<h3><span class="badge badge-secondary result-distance">0</span> m <span class="aux-total-part">de</span> <span class="total-part" id="total-part">0</span><span class="aux-total-part">m</span></h3>
-		  			<h3>Erro <span class="badge badge-secondary" id="distance-erro">0</span> m</h3>
+			  	<div class="col distance">
+		  			<h4 class="text-center speed-title">Trecho:</h4>
+		  			<h2 class="text-center" ><span class="badge badge-secondary text-center" id="trecho">No</span></h2>
+		  			
+		  			<!-- <h3>Erro <span class="badge badge-secondary" >0</span> m</h3> -->
 			  	</div>
 		  	</div>
-
-		<!-- Adicionar Trechos Botão -->
-		  	<div class="row justify-content-md-center space-down">
-		  		<div class="col-lg-4">
-		  			<button class="btn btn-primary btn-block btn-success show-form">Adicionar Trechos</button>
-		  			
-		  		</div>
+		  	<div class="row alert alert-success" role="alert" id="error-div">
+		  		<div class="col-6 distance">
+		  			<h4 class="text-center">Erro:</h4>
+		  			<h2 class="text-center"><span class="badge badge-secondary" id="distance-erro" >No</span> m</h2>
+			  	</div>
+			  	<div class="col">
+			  		<p>Distância:</p>
+			  		<h2><span class="badge badge-secondary result-distance">0</span> m</h2>
+			  		<h2><span class="aux-total-part">Total de</span> <span class="total-part" id="total-part">0</span><span class="aux-total-part">m</span></h2>
+			  	</div>
 		  	</div>
 	  	
 	  	<!-- Fornulário Adicionar Trechos -->
@@ -81,7 +81,7 @@
 
 		  		</div>
 		  	</div>
-		
+
 		<!-- Controle Joystic -->
 			<div class="row justify-content-md-center">
 			    <div class="col">
@@ -89,13 +89,23 @@
 			      	
 			    </div>
 		  	</div>
-
+		
 		<!-- Botão Iniciar Corrida -->
 		  	<div class="row justify-content-md-center space-down" id="row-start-button">
 		  		<div class="col-lg-4">
 		  			<button class="btn btn-primary btn-block btn-warning start-rally control">Iniciar Rally</button>
 		  		</div>
 		  	</div>
+
+		<!-- Adicionar Trechos Botão -->
+		  	<div class="row justify-content-md-center space-up">
+		  		<div class="col-lg-4">
+		  			<button class="btn btn-primary btn-block btn-dark show-form">Mostrar/Esconder Inputs</button>
+		  			
+		  		</div>
+		  	</div>
+		
+		
 	
 	</div>
 	
