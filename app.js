@@ -14,14 +14,20 @@
 
 	// Variáveis de Configurações Iniciais
 	
-		var 	size_wheel		= 45; 		// Tamanho do Pneu (em cm)
-		var 	wheel_div		= 2;		// Divisões da roda
-		var 	distance 		= 0;		// Distância Inicial
-		var 	initial_duty 	= 0;		// Valor Inicial Duty Cicle
-		var 	min_duty		= 0;		// Valor Mínimo Duty Cicle
-		var 	max_duty		= 254;		// Valor Máximo Duty Cicle
-		var 	no_signal_time	= 2000;		// Tempo sem sinal para cortar velocidade (em milesegundos)
+		var 		size_wheel		= 45; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini)
+		var 		wheel_div		= 2;		// Divisões da roda
+		var 		distance 		= 0;		// Distância Inicial
+		var 		initial_duty 	= 0;		// Valor Inicial Duty Cicle
+		var 		min_duty		= 0;		// Valor Mínimo Duty Cicle
+		var 		max_duty		= 254;		// Valor Máximo Duty Cicle
+		var 		no_signal_time	= 2000;		// Tempo sem sinal para cortar velocidade (em milesegundos)
+		
 
+
+		var 		mini_car 		= true;     // Falar se estou usando o carro pequeno
+		var 		mini_size_wheel	= 22; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini)
+		var 		mini_wheel_div	= 20;
+		
 
 	// Configurar Pinos
 
@@ -32,11 +38,24 @@
 		var 	in3 	= new Gpio(27, 	{mode: Gpio.OUTPUT});	// Enable 3
 		var 	in4 	= new Gpio(22, 	{mode: Gpio.OUTPUT});	// Enable 4
 
-		var 	encoder = new Gpio(26, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE});	// Sinal de Leitura de Velocidade do Encoder
+		if(mini_car){
+			var 	in1_2 	= new Gpio(19, 	{mode: Gpio.OUTPUT});	// Enable 1-2
+			var 	in2_2 	= new Gpio(26, 	{mode: Gpio.OUTPUT});	// Enable 2-2
+			var 	in3_2 	= new Gpio(23, 	{mode: Gpio.OUTPUT});	// Enable 3-2
+			var 	in4_2 	= new Gpio(24, 	{mode: Gpio.OUTPUT});	// Enable 4-2
+		}
+		
+
+		var 	encoder = new Gpio(20, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE});	// Sinal de Leitura de Velocidade do Encoder
 
 		// Set PWM
 		var 	pwm1	= new Gpio(13,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
 		var 	pwm2	= new Gpio(17,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
+
+		if(mini_car){
+			var 	pwm1_2	= new Gpio(16,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
+			var 	pwm2_2	= new Gpio(18,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
+		}
 		
 	
 // Funções Gerais do Carro
@@ -81,6 +100,7 @@
 			var 	esq 					= 0;
 			var 	dir 					= 0;
 
+
 		// Setar Pinos Enable
 
 			_self.pins = function(a,b,c,d){
@@ -88,6 +108,13 @@
 				in2.digitalWrite(b);
 				in3.digitalWrite(c);
 				in4.digitalWrite(d);
+
+				if(mini_car){
+					in1_2.digitalWrite(a);
+					in2_2.digitalWrite(b);
+					in3_2.digitalWrite(c);
+					in4_2.digitalWrite(d);
+				}
 			}
 
 
@@ -175,6 +202,11 @@
 
 				pwm1.pwmWrite(set_dir);
 				pwm2.pwmWrite(set_esq);
+
+				if(mini_car){
+					pwm1_2.pwmWrite(set_dir);
+					pwm2_2.pwmWrite(set_esq);
+				}
 
 			}
 
@@ -311,22 +343,23 @@
 			}
 
 		
-		// Verificar se carro está no ponto correto do rally
+		// Tratar Erro do Carro no Rally
 			_self.validate_position = function(){
 
 				var data 				= new Date();
 				time_valid_pos 			= data.getTime() - part_start_time;
 
-				whould_ride 			= time_valid_pos*(total_part_speed/60/100);
+				whould_ride 			= time_valid_pos*(total_part_speed/(60*1000));
+				// console.log("whould_ride: 	"+whould_ride);												// ------->> Debug
 
 				// whould_ride 			= (time/total_part_time)*car_distance;
-				speed_part 				= car_distance - whould_ride;
+				// speed_part 				= car_distance - whould_ride;
 				// dif_car_distance 		= car_distance - whould_ride;
 
-				console.log("total_part_time 	"+total_part_time);												// ------->> Debug
+				// console.log("total_part_time 	"+total_part_time);												// ------->> Debug
 
 				// part_erro 				= dif_car_distance.toFixed(2);
-				part_erro					= speed_part;
+				part_erro					= car_distance - whould_ride;
 
 				console.log("part_erro 	"+part_erro);												// ------->> Debug
 
@@ -356,6 +389,23 @@
 			}
 
 
+		// Se for o carro pequeno
+
+			_self.mini = function(){
+				size_wheel		= mini_size_wheel; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini
+				wheel_div		= mini_wheel_div;
+
+			}
+
+
+		// Verificar se está no carro pequeno
+
+			if(mini_car){
+				_self.mini();
+			}
+
+
+
 	}
 
 // Verificar no Signal
@@ -364,6 +414,7 @@
 		car.no_signal();
 	}, no_signal_time/2);
 
+
 // Contando borda de subida e enviadno para o controle
 	
 	encoder.on('interrupt', function (level) {
@@ -371,6 +422,7 @@
 		    car.sensor_interrupt();
 		  }
 	});
+
 
 // Conexão com o Controle
 	
