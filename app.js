@@ -229,7 +229,9 @@
 				_self.speed_calc();			// Mandar calcular velocidade
 				_self.distance_calc();		// Mandar calcular distância
 				_self.count_run();			// Mandar contar caso esteja em modo Trehcos
+				_self.validate_position();	// Verificar erro caso caso esteja no modo Trechos
 				_self.send_run_info(); 		// Enviar informações para o carrinho
+
 
 			}
 
@@ -325,7 +327,6 @@
 			_self.count_run = function(){
 
 				if(part_active){
-					_self.validate_position();
 
 					if(car_distance >= total_part_distance){
 
@@ -335,10 +336,8 @@
 							actual_part++;
 							_self.def_actual_part_variables();
 
-
 					// Acabou último trecho 
 						}else{
-
 							car_distance 	= 0;
 							part_active  	= false;
 							actual_part 	= "No";
@@ -360,23 +359,17 @@
 		// Tratar Erro do Carro no Rally
 			_self.validate_position = function(){
 
-				var data 				= new Date();
-				time_valid_pos 			= data.getTime() - part_start_time;
+				if(part_active){
 
-				whould_ride 			= time_valid_pos*(total_part_speed/(60*1000));
-				// console.log("whould_ride: 	"+whould_ride);												// ------->> Debug
+					var data 				= new Date();
+					time_valid_pos 			= data.getTime() - part_start_time;
 
-				// whould_ride 			= (time/total_part_time)*car_distance;
-				// speed_part 				= car_distance - whould_ride;
-				// dif_car_distance 		= car_distance - whould_ride;
+					whould_ride 			= time_valid_pos*(total_part_speed/(60*1000));
+					part_erro				= car_distance - whould_ride;
 
-				// console.log("total_part_time 	"+total_part_time);												// ------->> Debug
-
-				// part_erro 				= dif_car_distance.toFixed(2);
-				part_erro					= car_distance - whould_ride;
-
-				console.log("part_erro 	"+part_erro);												// ------->> Debug
-
+					// console.log("part_erro 	"+part_erro);												// ------->> Debug
+				}
+				
 			} 
 
 
