@@ -158,14 +158,18 @@
         // Validar Cor Erro
             _self.color_erro = function(){
                 
-                    error_div = $("#error-div");
+                    error_div   = $("#error-div");
+                    seta_div    = $("#seta");
 
                     if(error_calc < 0.25 && error_calc > -0.25){
                         error_div.css('background-color','#d4edda');
+                        seta_div.html('<i class="fas fa-window-minimize"></i>');
                     }else if(error_calc > 0.25){
                         error_div.css('background-color','#fff3cd');
+                        seta_div.html('<i class="fas fa-angle-down"></i>');
                     }else if(error_calc < -0.25){
                         error_div.css('background-color','#f8d7da');
+                        seta_div.html('<i class="fas fa-angle-up"></i>');
                     }
 
             }
@@ -205,7 +209,6 @@
     $("button.show-form").click(function(){
         $(".insert-data").toggle();
         $(".control").toggle();
-        // car.check_joy_position();
     });
  
 
@@ -215,7 +218,6 @@
         car.send_parts();
         $(".insert-data").toggle();
         $(".control").toggle();
-        // car.check_joy_position();
         return false;
     });
 
@@ -241,7 +243,6 @@
     socket.on('rally-started',function(){
       $('.off-part').hide();
       $('.on-part').show();
-      // car.check_joy_position();
 
     });
 

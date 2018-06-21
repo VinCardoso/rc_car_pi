@@ -15,7 +15,7 @@
 	// Variáveis de Configurações Iniciais
 	
 		var 		size_wheel		= 45; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini)
-		var 		wheel_div		= 2;		// Divisões da roda
+		var 		wheel_div		= 4;		// Divisões da roda
 		var 		distance 		= 0;		// Distância Inicial
 		var 		initial_duty 	= 0;		// Valor Inicial Duty Cicle
 		var 		min_duty		= 0;		// Valor Mínimo Duty Cicle
@@ -31,31 +31,31 @@
 
 	// Configurar Pinos
 
-		pigpio.configureClock(5, pigpio.CLOCK_PWM);				// Definir Clock do PWM dos motores
+		// pigpio.configureClock(5, pigpio.CLOCK_PWM);				// Definir Clock do PWM dos motores
 
-		var 	in1 	= new Gpio(5, 	{mode: Gpio.OUTPUT});	// Enable 1
-		var 	in2 	= new Gpio(6, 	{mode: Gpio.OUTPUT});	// Enable 2
-		var 	in3 	= new Gpio(27, 	{mode: Gpio.OUTPUT});	// Enable 3
-		var 	in4 	= new Gpio(22, 	{mode: Gpio.OUTPUT});	// Enable 4
+		var 	in1 	= new Gpio(12, 	{mode: Gpio.OUTPUT});	// Enable 1
+		var 	in2 	= new Gpio(16, 	{mode: Gpio.OUTPUT});	// Enable 2
+		var 	in3 	= new Gpio(5, 	{mode: Gpio.OUTPUT});	// Enable 3
+		var 	in4 	= new Gpio(6, 	{mode: Gpio.OUTPUT});	// Enable 4
 
-		if(mini_car){
-			var 	in1_2 	= new Gpio(19, 	{mode: Gpio.OUTPUT});	// Enable 1-2
-			var 	in2_2 	= new Gpio(26, 	{mode: Gpio.OUTPUT});	// Enable 2-2
-			var 	in3_2 	= new Gpio(23, 	{mode: Gpio.OUTPUT});	// Enable 3-2
-			var 	in4_2 	= new Gpio(24, 	{mode: Gpio.OUTPUT});	// Enable 4-2
-		}
+		// if(mini_car){
+		// 	var 	in1_2 	= new Gpio(19, 	{mode: Gpio.OUTPUT});	// Enable 1-2
+		// 	var 	in2_2 	= new Gpio(26, 	{mode: Gpio.OUTPUT});	// Enable 2-2
+		// 	var 	in3_2 	= new Gpio(23, 	{mode: Gpio.OUTPUT});	// Enable 3-2
+		// 	var 	in4_2 	= new Gpio(24, 	{mode: Gpio.OUTPUT});	// Enable 4-2
+		// }
 		
 
-		var 	encoder = new Gpio(20, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE});	// Sinal de Leitura de Velocidade do Encoder
+		var 	encoder = new Gpio(25, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE});	// Sinal de Leitura de Velocidade do Encoder
 
 		// Set PWM
-		var 	pwm1	= new Gpio(13,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
-		var 	pwm2	= new Gpio(17,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
+		var 	pwm1	= new Gpio(21,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
+		var 	pwm2	= new Gpio(13,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
 
-		if(mini_car){
-			var 	pwm1_2	= new Gpio(16,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
-			var 	pwm2_2	= new Gpio(18,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
-		}
+		// if(mini_car){
+		// 	var 	pwm1_2	= new Gpio(16,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
+		// 	var 	pwm2_2	= new Gpio(18,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
+		// }
 		
 	
 // Funções Gerais do Carro

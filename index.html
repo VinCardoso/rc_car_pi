@@ -8,6 +8,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="stylesheet" href="src/style.css" media="screen" title="no title" charset="utf-8">
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css" media="screen" title="no title" charset="utf-8">
+    <link href="src/css/fontawesome-all.css" rel="stylesheet">
 
 </head>
 <body>
@@ -23,11 +24,14 @@
  -->
 		<!-- Velocidade -->
 		  	<div class="row">
-		  		<div class="col-8">
+		  		<div class="col-2" id="seta">
+		  			<i class="fas fa-window-minimize"></i>
+		  		</div>
+		  		<div class="col-7">
 		  			<h4 class="text-center speed-title">Velocidade:</h4>
 		  			<h2 class="text-center"><span class="badge badge-secondary result-speed ">0</span> m/min</h2>
 			  	</div>
-			  	<div class="col distance">
+			  	<div class="col-3 distance">
 		  			<h4 class="text-center speed-title">Trecho:</h4>
 		  			<h2 class="text-center" ><span class="badge badge-secondary text-center" id="trecho">No</span></h2>
 		  			
@@ -35,7 +39,8 @@
 			  	</div>
 		  	</div>
 		  	<div class="row alert alert-success" role="alert" id="error-div">
-		  		<div class="col-6 distance">
+		  		
+		  		<div class="col distance">
 		  			<h4 class="text-center">Erro:</h4>
 		  			<h2 class="text-center"><span class="badge badge-secondary" id="distance-erro" >No</span> m</h2>
 			  	</div>
