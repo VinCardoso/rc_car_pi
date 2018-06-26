@@ -19,9 +19,6 @@
         var     error           =   0;
         var     error_calc      =   0;
 
-
-
-
 // Objeto Carro
 
     var car = new function(){
@@ -29,7 +26,6 @@
         _self = this;
 
         // Criar Joystick
-
             _self.create_joy = function(){
 
                 joystic = nipplejs.create({
@@ -43,8 +39,8 @@
 
             }
 
-        // Checar posição do Joystic
 
+        // Checar posição do Joystic
             _self.check_joy_position = function(){
 
                 position_c  = $('.nipple .front').offset();            // Posição do centro do elemento
@@ -58,8 +54,8 @@
 
             }
 
-        // Calcular Movimentação do Joystick
 
+        // Calcular Movimentação do Joystick
             _self.calc_joy_move = function(){
 
                 x_default = (joy_x - position_b.left - size)*mult;
@@ -74,29 +70,28 @@
              
             }
 
-        // Enviar informações do Joystic
 
+        // Enviar informações do Joystic
             _self.send_joy = function(){
                 socket.emit('joy',x,y,distance.toFixed(3));
-                console.log("X = "+x+" Y = "+y+" Distance = "+distance.toFixed(3));                                    // ------->> Debug 
             }
 
-        // Enviar informação que soltou Joystic
 
+        // Enviar informação que soltou Joystic
             _self.send_stop = function(){
                 socket.emit('stop-car');
             }
 
-        // Colocar Trechos Inicais
 
+        // Colocar Trechos Inicais
             _self.init = function(){
                 for (i = 0; i < initial_parts; i++) {
                     _self.add_part_form();
                 }
             }
 
-        // Adicionar novo campo para trecho na interface
 
+        // Adicionar novo campo para trecho na interface
             _self.n_trechos = 0;
 
             _self.add_part_form = function(){
@@ -129,7 +124,6 @@
             }
 
         // Enviar Trechos
-
             _self.send_parts = function(){
 
                 var     dist            =   [];
@@ -143,17 +137,15 @@
                 });
 
                 socket.emit('parts',dist,speed);
-
-                console.log(dist);
-                console.log(speed);
             
             }
 
-        // Ações Iniciais
 
+        // Ações Iniciais
             _self.create_joy();
             _self.check_joy_position();
             _self.init();
+
 
         // Validar Cor Erro
             _self.color_erro = function(){
@@ -178,7 +170,6 @@
 
  
 // Ação Quando Joystick se Movimentar
-
     joystic.on('move',function (evt, data) {
         
         joy_x           = data.position.x;
@@ -189,14 +180,12 @@
 
 
 // Ação Quando Joystick for Solto
-
     }).on('end',function(evt,data){
         car.send_stop();
     });    
 
  
 // Botão Adicionar Trecho
-
     $("button.add").click(function(evt){
         evt.preventDefault();
         car.add_part_form();
@@ -205,7 +194,6 @@
  
 
 // Botão Mostrar ou Esconder Form
-
     $("button.show-form").click(function(){
         $(".insert-data").toggle();
         $(".control").toggle();
@@ -213,7 +201,6 @@
  
 
 // Botão Enviar Trechos
-
     $("button.send-data").click(function(){
         car.send_parts();
         $(".insert-data").toggle();
@@ -223,7 +210,6 @@
 
 
 // Botão Começar Rally
-
     $("button.start-rally").click(function(){
         socket.emit('start','1');
         $("#row-start-button").hide();
@@ -232,32 +218,26 @@
 
 
 // Server mandou mostrar botão de inicar corrida
-
     socket.on('active-start-button', function() {
         $("#row-start-button").show();
     });
 
 
 // Servidor avisou que a corrida comecou
-
     socket.on('rally-started',function(){
       $('.off-part').hide();
       $('.on-part').show();
-
     });
 
 
 // Servidor disse que rally acaboy
-
     socket.on('rally-ended',function(){
       $('.on-part').hide();
       $('.off-part').show();
-      // setTimeout(car.check_joy_position(), 200);
     });
 
 
 // Mostrar velocidade
-    
     socket.on('run_info', function(speed,distance,actual_part,total_part,error){
         $('span.result-speed').html(speed);
         $('span.result-distance').html(distance);

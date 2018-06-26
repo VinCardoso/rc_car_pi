@@ -13,21 +13,14 @@
 
 
 	// Variáveis de Configurações Iniciais
-	
-		var 		size_wheel		= 45; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini)
-		var 		wheel_div		= 4;		// Divisões da roda
-		var 		distance 		= 0;		// Distância Inicial
-		var 		initial_duty 	= 0;		// Valor Inicial Duty Cicle
-		var 		min_duty		= 0;		// Valor Mínimo Duty Cicle
-		var 		max_duty		= 254;		// Valor Máximo Duty Cicle
-		var 		no_signal_time	= 2000;		// Tempo sem sinal para cortar velocidade (em milesegundos)
-		
+		var 	size_wheel				= 45; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini)
+		var 	wheel_div				= 4;		// Divisões da roda
+		var 	distance 				= 0;		// Distância Inicial
+		var 	initial_duty 			= 0;		// Valor Inicial Duty Cicle
+		var 	min_duty				= 0;		// Valor Mínimo Duty Cicle
+		var 	max_duty				= 254;		// Valor Máximo Duty Cicle
+		var 	no_signal_time			= 2000;		// Tempo sem sinal para cortar velocidade (em milesegundos)
 
-
-		var 		mini_car 		= false;     // Falar se estou usando o carro pequeno
-		var 		mini_size_wheel	= 22; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini)
-		var 		mini_wheel_div	= 20;
-		
 
 	// Configurar Pinos
 
@@ -38,24 +31,10 @@
 		var 	in3 	= new Gpio(5, 	{mode: Gpio.OUTPUT});	// Enable 3
 		var 	in4 	= new Gpio(6, 	{mode: Gpio.OUTPUT});	// Enable 4
 
-		// if(mini_car){
-		// 	var 	in1_2 	= new Gpio(19, 	{mode: Gpio.OUTPUT});	// Enable 1-2
-		// 	var 	in2_2 	= new Gpio(26, 	{mode: Gpio.OUTPUT});	// Enable 2-2
-		// 	var 	in3_2 	= new Gpio(23, 	{mode: Gpio.OUTPUT});	// Enable 3-2
-		// 	var 	in4_2 	= new Gpio(24, 	{mode: Gpio.OUTPUT});	// Enable 4-2
-		// }
-		
-
-		var 	encoder = new Gpio(25, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE});	// Sinal de Leitura de Velocidade do Encoder
-
-		// Set PWM
 		var 	pwm1	= new Gpio(21,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
 		var 	pwm2	= new Gpio(13,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
 
-		// if(mini_car){
-		// 	var 	pwm1_2	= new Gpio(16,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 1
-		// 	var 	pwm2_2	= new Gpio(18,	{mode: Gpio.OUTPUT});	// Saída do PWM Motor 2
-		// }
+		var 	encoder = new Gpio(25, 	{mode: Gpio.INPUT, edge: Gpio.EITHER_EDGE});	// Sinal de Leitura de Velocidade do Encoder
 		
 	
 // Funções Gerais do Carro
@@ -102,50 +81,36 @@
 
 
 		// Setar Pinos Enable
-
 			_self.pins = function(a,b,c,d){
 				in1.digitalWrite(a);
 				in2.digitalWrite(b);
 				in3.digitalWrite(c);
 				in4.digitalWrite(d);
-
-				if(mini_car){
-					in1_2.digitalWrite(a);
-					in2_2.digitalWrite(b);
-					in3_2.digitalWrite(c);
-					in4_2.digitalWrite(d);
-				}
 			}
 
 
 		// PARAR Carrinho
-
 			_self.stop = function(){
 				_self.pins(1,1,1,1);
-				// console.log('Stop');										// ------->> Debug
 			}
 
 
 		// Setar Carro para ir para FRENTE
-
 			_self.front = function() {
 				_self.pins(1,0,1,0);
 			}
 
 
 		// Setar Carro para ir  para TRÁS
-
 			_self.back = function() {
 				_self.pins(0,1,0,1);
 			}
 
 
 		// Determinar Direção e Velocidade do Carrinho
-
 			_self.dir_speed = function(x,y,speed){
 
 				// Definir Velocidade dos PWM
-
 					if(x>0){
 						
 						duty_esq 	= (speed * max_duty);
@@ -161,7 +126,6 @@
 					_self.set_speed(duty_esq,duty_dir);
 
 				// Selecionar Direção Frente ou Trás
-
 					if (y<0){
 						_self.front();
 					}else if(y>0){
@@ -183,14 +147,12 @@
 				var check_time 			= date_signal.getTime() - time_signal;
 
 				if(check_time > no_signal_time){
-					// console.log('Sem Sinal');							// ------->> Debug
 					_self.stop();
 				}
 			}
 
 
 		// Setar Velocidade dos PWM
-
 			_self.set_speed = function(esq,dir){
 
 				if(!isNaN(esq) || !isNaN(esq)){
@@ -208,22 +170,14 @@
 					}
 					
 				}
-				
-				console.log(set_dir + " " +set_esq);						// ------->> Debug
 
 				pwm1.pwmWrite(set_dir);
 				pwm2.pwmWrite(set_esq);
-
-				if(mini_car){
-					pwm1_2.pwmWrite(set_dir);
-					pwm2_2.pwmWrite(set_esq);
-				}
 
 			}
 
 
 		// Tratar interrupção do Senor
-
 			_self.sensor_interrupt = function(){
 
 				_self.speed_calc();			// Mandar calcular velocidade
@@ -237,27 +191,19 @@
 
 
 		// Calcular Velocidade
-
 			_self.speed_calc = function(){
 
 				var date 		= new Date();
-				// console.log("time: "+time)					// ------->> Debug	
 				var result 		= date.getTime() - time;
-				time 			= date.getTime(); 
-
-				// console.log("Resultado: "+result)					// ------->> Debug	
-
+				time 			= date.getTime();
 
 		        seg 			= result/(1000*60);
-		       	car_speed 		= dis_m/seg;
-
-		     	// console.log(car_speed.toFixed(2)+' m/min');					// ------->> Debug			
+		       	car_speed 		= dis_m/seg;		
 
 			}
 
 
 		// Calcular Distancia Percorrida
-
 			_self.distance_calc = function(){
 
 				car_distance 	= car_distance + dis_m;
@@ -267,7 +213,6 @@
 
  
 		// Enivar velocidade e distancia para controle
-
 			_self.send_run_info = function(){
 				a 		= car_speed.toFixed(2);
 				b 		= car_distance.toFixed(2);
@@ -275,22 +220,14 @@
 				d		= total_part_distance.toFixed(1);
 				e		= part_erro.toFixed(2);
 
-				// console.log("speed: "+a+"	distance: "+b+"	actual_part: "+c+"	total_part_distance: "+d+"	part_erro: "+e); // ------->> Debug	
 				io.emit('run_info', a, b, c, d, e);
 			}
 
 
 		// Tratar Trechos
-
 			_self.set_trechos = function(dist,speed){
 
-				// console.log("Recebido"); 									// ------->> Debug
-
 				if(dist.length < 30){// Condição apenas para tratar um erro que acontece no raspberry que está enviando dados de 38 dados de 1
-
-					// for (i = 0; i < dist.length; i++) {
-	    				
-					// }
 
 					n_part 			= dist.length;
 					part_distance 	= dist;
@@ -317,8 +254,6 @@
 
 				io.emit('rally-started');
 
-				// console.log("Parte Atual:" + actual_part + " Total dessa Parte: " +total_part_distance);	// ------->> Debug
-
 				_self.send_run_info();
 			}
 			
@@ -341,11 +276,9 @@
 							car_distance 	= 0;
 							part_active  	= false;
 							actual_part 	= "No";
-							error 			= "No";
-							// total_part_distance = 0;
+							error 			= 0;
 
-							console.log('Acabou');							// ------->> Debug
-							io.emit('rally-ended')
+							io.emit('rally-ended');
 																							
 						}
 						
@@ -367,7 +300,6 @@
 					whould_ride 			= time_valid_pos*(total_part_speed/(60*1000));
 					part_erro				= car_distance - whould_ride;
 
-					// console.log("part_erro 	"+part_erro);												// ------->> Debug
 				}
 				
 			} 
@@ -396,23 +328,6 @@
 			}
 
 
-		// Se for o carro pequeno
-
-			_self.mini = function(){
-				size_wheel		= mini_size_wheel; 		// Tamanho do Pneu (em cm) (45 tamanho do carrinho PI e 22 Carrinho Mini
-				wheel_div		= mini_wheel_div;
-
-			}
-
-
-		// Verificar se está no carro pequeno
-
-			if(mini_car){
-				_self.mini();
-			}
-
-
-
 	}
 
 // Verificar no Signal
@@ -423,7 +338,6 @@
 
 
 // Contando borda de subida e enviadno para o controle
-	
 	encoder.on('interrupt', function (level) {
 		  if(level === 1){
 		    car.sensor_interrupt();
